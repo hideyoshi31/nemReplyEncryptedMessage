@@ -8,11 +8,11 @@ export const transferTransactioneEcryptedMessage = functions.https.onRequest((re
   const message: any = req.body.message
   return nemwrap.getPublickKey(address)
   .then((resolve:any) => {
+    console.log(resolve)
     return nemwrap.sendEncryptMessage(resolve,address,message)
   })
   .then((resolve:any) => {
     const result = resolve
     console.log(result)
-    res.send(result)
   })
 })

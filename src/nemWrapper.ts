@@ -65,7 +65,7 @@ export function getPublickKey(addr:any) {
 const promise =  new Promise((resolve, reject) => {
   const address = new Address(addr)
   accountHttp.getFromAddress(address).subscribe(
-    accountInfoWithMetaData => { resolve([accountInfoWithMetaData.publicAccount.publicKey,addr]) },
+    accountInfoWithMetaData => { resolve(accountInfoWithMetaData.publicAccount.publicKey) },
     error => { reject(error) }
   )
 })
