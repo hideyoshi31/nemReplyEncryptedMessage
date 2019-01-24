@@ -1,17 +1,11 @@
+import * as functions from 'firebase-functions'
 import {
   Account, AccountHttp, NEMLibrary, NetworkTypes, Address, TimeWindow, XEM,
 TransactionHttp, TransferTransaction, PublicAccount} from 'nem-library'
 NEMLibrary.bootstrap(NetworkTypes.MAIN_NET)
 
-const PASSWORD = 'test'
-const PUBLICK_KEY = '2eb08ae3fb38b258d5484b1ba938ae693d3218c052b6c6d10fe62fa6e3b5f0d1'
-const PRIVATE_KEY = 'bf6ebaacf25aae42e74d0e438249ee9df3f558c745cb08724c64ba35f2415e64'
-const NEM_UNIT = 1000000
-
-exports.PUBLICK_KEY = PUBLICK_KEY
+const PRIVATE_KEY = encodeURIComponent(functions.config().nemreplyencryptedmessage.privatekey);
 exports.PRIVATE_KEY = PRIVATE_KEY
-exports.NEM_UNIT = NEM_UNIT
-exports.PASSWORD = PASSWORD
 
 const nodes: any = [
   {protocol: 'https', domain: 'aqualife2.supernode.me', port: 7891},
@@ -36,38 +30,38 @@ const accountHttp = new AccountHttp(nodes)
 const transactionHttp = new TransactionHttp(nodes)
 
 export function sendEncryptMessage (pbkey:any, addr:any, ms: any) {
-const amount: number = 0
-const publickkey = pbkey
-const address = addr
-const privateKey = PRIVATE_KEY
-const message = ms
+  const amount: number = 0
+  const publickkey = pbkey
+  const address = addr
+  const privateKey = PRIVATE_KEY
+  const message = ms
 
-const promise = new Promise((resolve, reject) => {
-  const account = Account.createWithPrivateKey(privateKey)
-  const recipientPublicAccount = PublicAccount.createWithPublicKey(publickkey);
-  const encryptedMessage = account.encryptMessage(message, recipientPublicAccount);
-  const tx = TransferTransaction.create(
-    TimeWindow.createWithDeadline(),
-    new Address(address),
-    new XEM(amount),
-    encryptedMessage
-  )
-  const signedTransaction = account.signTransaction(tx)
-  transactionHttp.announceTransaction(signedTransaction).subscribe(
-    result => { resolve(result) },
-    error => { reject(error) }
-  )
-})
-return promise
+  const promise = new Promise((resolve, reject) => {
+    const account = Account.createWithPrivateKey(privateKey)
+    const recipientPublicAccount = PublicAccount.createWithPublicKey(publickkey);
+    const encryptedMessage = account.encryptMessage(message, recipientPublicAccount);
+    const tx = TransferTransaction.create(
+      TimeWindow.createWithDeadline(),
+      new Address(address),
+      new XEM(amount),
+      encryptedMessage
+    )
+    const signedTransaction = account.signTransaction(tx)
+    transactionHttp.announceTransaction(signedTransaction).subscribe(
+      result => { resolve(result) },
+      error => { reject(error) }
+    )
+  })
+  return promise
 }
 
 export function getPublickKey(addr:any) {
-const promise =  new Promise((resolve, reject) => {
-  const address = new Address(addr)
-  accountHttp.getFromAddress(address).subscribe(
-    accountInfoWithMetaData => { resolve(accountInfoWithMetaData.publicAccount.publicKey) },
-    error => { reject(error) }
-  )
-})
-return promise
+  const promise =  new Promise((resolve, reject) => {
+    const address = new Address(addr)
+    accountHttp.getFromAddress(address).subscribe(
+      accountInfoWithMetaData => { resolve(accountInfoWithMetaData.publicAccount.publicKey) },
+      error => { reject(error) }
+    )
+  })
+  return promise
 }
