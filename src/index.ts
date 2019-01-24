@@ -13,6 +13,6 @@ export const transferTransactioneEcryptedMessage = functions.https.onRequest((re
   })
   .then((resolve:any) => {
     const result = resolve
-    console.log(result)
+    res.send(result)
   })
 })
