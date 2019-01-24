@@ -5,10 +5,10 @@ admin.initializeApp()
 
 export const transferTransactioneEcryptedMessage = functions.https.onRequest((req, res) => {
   const address: any = req.body.address
-  const massege: any = req.body.massege
+  const message: any = req.body.message
   return nemwrap.getPublickKey(address)
   .then((resolve:any) => {
-    return nemwrap.sendEncryptMessage(resolve,address,massege)
+    return nemwrap.sendEncryptMessage(resolve,address,message)
   })
   .then((resolve:any) => {
     const result = resolve
