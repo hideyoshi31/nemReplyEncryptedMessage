@@ -47,12 +47,18 @@ return nemwrap.getIncomingTransactions(ADRESS)
           sendedaddres.push(address)
       })
       let sendaddr: any[] = []
+      let counter: number =0
       for(let i = 0; i < targetaddr.length; i++){
         for(let j = 0; j<sendedaddres.length; j++){
-          if(targetaddr[i].address !== sendedaddres[j].address){
-            sendaddr.push(targetaddr[i])
+          if(counter==0 && targetaddr[i].address == sendedaddres[j].address){
+            counter++
           }
         }
+        if(counter==0){
+          console.log(targetaddr[i].address,i)
+          sendaddr.push(targetaddr[i])
+        }
+        counter = 0
       }
       let arrObj: any = {};
       for (let i = 0; i < sendaddr.length; i++) {
@@ -105,8 +111,6 @@ return nemwrap.getIncomingTransactions(ADRESS)
       sendeddress.forEach((address:any) => {
         return nemwrap.getPublickKey(address.address)
         .then((publickKey:any) => {
-          console.log(publickKey)
-          console.log(address.address)
           return nemwrap.sendEncryptMessage(publickKey,address.address,SEND_MESSAGE)
         })
         .then((end:any) => {
