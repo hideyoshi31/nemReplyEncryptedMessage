@@ -1,14 +1,12 @@
-//import * as functions from 'firebase-functions'
-/*import {
+import * as functions from 'firebase-functions'
+import {
   Account, AccountHttp, NEMLibrary, NetworkTypes, Address, TimeWindow, XEM,
 TransactionHttp, TransferTransaction, PublicAccount} from 'nem-library'
-*/
-import { AccountHttp, NEMLibrary, NetworkTypes, Address,} from 'nem-library'
 
 NEMLibrary.bootstrap(NetworkTypes.MAIN_NET)
 
-//const PRIVATE_KEY = encodeURIComponent(functions.config().nemreplyencryptedmessage.privatekey);
-//exports.PRIVATE_KEY = PRIVATE_KEY
+const PRIVATE_KEY = `${functions.config().nemreplyencryptedmessage.privatekey}`
+exports.PRIVATE_KEY = PRIVATE_KEY
 
 const nodes: any = [
   {protocol: 'https', domain: 'aqualife2.supernode.me', port: 7891},
@@ -30,8 +28,8 @@ const nodes: any = [
 
 // Using custom NIS Node
 const accountHttp = new AccountHttp(nodes)
-//const transactionHttp = new TransactionHttp(nodes)
-/*
+const transactionHttp = new TransactionHttp(nodes)
+
 export function sendEncryptMessage (pbkey:any, addr:any, ms: any) {
   const amount: number = 0
   const publickkey = pbkey
@@ -68,11 +66,31 @@ export function getPublickKey(addr:any) {
   })
   return promise
 }
-*/
-export function getTransaction(addr:any) {
+
+export function getIncomingTransactions(addr:any) {
   const promise =  new Promise((resolve, reject) => {
     const address = new Address(addr)
-    accountHttp.allTransactions(address).subscribe(
+    accountHttp.incomingTransactions(address).subscribe(
+      result => { resolve(result) }      
+    )
+  })
+  return promise
+}
+
+export function getOutgoingTransactions(addr:any) {
+  const promise =  new Promise((resolve, reject) => {
+    const address = new Address(addr)
+    accountHttp.outgoingTransactions(address).subscribe(
+      result => { resolve(result) }      
+    )
+  })
+  return promise
+}
+
+export function getUnconfirmedTransactions(addr:any) {
+  const promise =  new Promise((resolve, reject) => {
+    const address = new Address(addr)
+    accountHttp.unconfirmedTransactions(address).subscribe(
       result => { resolve(result) }      
     )
   })
