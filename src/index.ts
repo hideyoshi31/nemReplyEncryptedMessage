@@ -19,104 +19,43 @@ nemwrap.incomingTransactions(ADRESS)
   })
 */
 
-export const nemReplyEncryptedMessage = functions.https.onRequest((req, res) => {
-return nemwrap.getIncomingTransactions(ADRESS)
-  .then((resolve:any) => {
-    const result = resolve
-    const addresses: any[]=[]    
-    result.forEach((item: any, i: any) => {
-      if(item._xem.amount >= BORDER_AMOUNT){
-        const address: any = {
-          address: item.signer.address.value,
+export const nemReplyEncryptedMessage = functions.https.onRequest(async(req, res) => {
+  try {
+    //入金履歴
+    const r1:any = await nemwrap.getIncomingTransactions(ADRESS)
+    //一定以上のXEM入金リスト
+    const r2:any = r1.filter((item:any) => item._xem.amount >= BORDER_AMOUNT)
+    //出金履歴
+    const r3:any = await nemwrap.getOutgoingTransactions(ADRESS)
+    //未承認トランザクション
+    const r4:any = await nemwrap.getUnconfirmedTransactions(ADRESS)
+    //3と4の連結
+    const r5 = Object.assign(r3, r4);
+    //未出金かつ入金済み
+    const r6: any[] = []
+    let counter: number =0
+    for(let i = 0; i < r2.length; i++){
+      for(let j = 0; j<r5.length; j++){
+        if(counter===0 && r2[i].signer.address.value === r5[j].recipient.value){
+          counter++
         }
-        addresses.push(address)
       }
+      if(counter===0){
+        r6.push(r2[i].signer.address.value)
+      }
+      counter = 0
+    }
+    //重複削除
+    const r7 = r6.filter(function (x, i, self) {
+      return self.indexOf(x) === i;
+    });
+    r7.forEach(async(address:any) => {
+      const pbkey = await nemwrap.getPublickKey(address.address)
+      const result = await nemwrap.sendEncryptMessage(pbkey,address.address,SEND_MESSAGE)
+      console.log(result)
     })
-    return addresses
-  })
-  .then((resolve:any) => {
-    const targetaddr: any = resolve
-    return nemwrap.getOutgoingTransactions(ADRESS)
-    .then((outgoingTransactions:any) => {
-      const sendedaddr = outgoingTransactions
-      const sendedaddres :any[] =[]
-      sendedaddr.forEach((item: any) => {
-          const address: any = {
-            address: item.recipient.value,
-          }
-          sendedaddres.push(address)
-      })
-      let sendaddr: any[] = []
-      let counter: number =0
-      for(let i = 0; i < targetaddr.length; i++){
-        for(let j = 0; j<sendedaddres.length; j++){
-          if(counter==0 && targetaddr[i].address == sendedaddres[j].address){
-            counter++
-          }
-        }
-        if(counter==0){
-          console.log(targetaddr[i].address,i)
-          sendaddr.push(targetaddr[i])
-        }
-        counter = 0
-      }
-      let arrObj: any = {};
-      for (let i = 0; i < sendaddr.length; i++) {
-        arrObj[sendaddr[i]['address']] = sendaddr[i];
-      }
-      
-      sendaddr = [];
-      for (let key in arrObj) {
-        sendaddr.push(arrObj[key]);
-      }
-      const sendeddress: any[]=[]
-      sendaddr.forEach((item:any) => {
-        const address: any = {
-          address: item.address,
-        }
-        sendeddress.push(address)
-      })
-      /*
-      return nemwrap.getUnconfirmedTransactions(ADRESS)
-      .then((resolve:any) => {
-        let sendeddress: any[]=[]
-        if(resolve.length==0){
-          outgoingaddress.forEach((item:any) => {
-            const address: any = {
-              address: item.address
-            }
-            sendeddress.push(address)
-          })
-        }else{
-          const result = resolve
-          let addresses: any[]=[]
-          result.forEach((i: any) => {
-            const address: any = {
-              address: result[i].recipient.value,
-            }
-            addresses.push(address)
-          })
-          for(var i=0;i<resolve.length;i++){
-            for(var j=0;i<outgoingaddress.length;j++){
-              if(outgoingaddress[j].address !== addresses[i].address){
-                sendeddress = outgoingaddress[j].address
-              }
-            }
-          }
-        }
-        console.log(sendeddress)
-        return sendeddress
-      })
-      */
-      sendeddress.forEach((address:any) => {
-        return nemwrap.getPublickKey(address.address)
-        .then((publickKey:any) => {
-          return nemwrap.sendEncryptMessage(publickKey,address.address,SEND_MESSAGE)
-        })
-        .then((end:any) => {
-          console.log(end)
-        })
-      })
-    })
-  })
+  }catch(error) {
+    console.error(error)
+  }
+  res.send("OK")
 })
