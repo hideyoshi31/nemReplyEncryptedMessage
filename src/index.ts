@@ -45,7 +45,7 @@ export const nemReplyEncryptedMessage = functions.https.onRequest(async(req, res
       counter = 0
     }
     //重複削除
-    const r7 = r6.filter((x:any, i, self) => self.indexOf(x) === i)
+    const r7 = r6.filter((x, i, self) => self.indexOf(x) === i)
 
     r7.forEach(async(address:any) => {
       //公開鍵取得
